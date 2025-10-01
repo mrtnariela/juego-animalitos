@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Juego de Animalitos - Tutorial y Niveles</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        /* Estilos CSS (Se mantienen sin cambios por la compactación ya hecha) */
+        :root{
+            --fondo1: #fceff3;
+            --fondo2: #e8f7f9;
+            --primario: #f48fb1;
+            --texto: #3e2c2a;
+            --boton: #d1c4e9;
+            --ok: #2e7d32;
+            --error: #c62828;
+            --comida-scroll: #ff7043;
+        }
+        body {
+            font-family: "Comic Sans MS", Arial, sans-serif;
+            background: linear-gradient(to bottom, var(--fondo1), var(--fondo2));
+            text-align: center;
+            padding: 10px;
+            color: var(--texto);
+            -webkit-font-smoothing: antialiased;
+            overflow-y: hidden; 
+        }
+        h1 {
+            color: var(--primario);
+            text-shadow: 1px 1px #f8bbd0;
+            margin-bottom: 4px;
+            font-size: 24px;
+        }
+        h2 {
+            font-size: 20px;
+            margin: 6px 0;
+        }
+        #menu button, #juego button, #scrollJuegoContenedor button, #tutorial button {
+            font-size: 18px;
+            margin: 6px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            background: var(--boton);
+            color: var(--texto);
+            transition: transform .12s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #menu button:hover, #juego button:hover, #scrollJuegoContenedor button:hover, #tutorial button:hover {
+            transform: scale(1.03);
+        }
+        #instruccion {
+            font-size: 18px;
+            margin: 6px;
+            color:#6b4b5a;
+            font-weight:700;
+            min-height: 20px;
+        }
+        #letra {
+            font-size: 70px;
+            font-weight: bold;
+            color: #ffb74d;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin: 8px 0;
+            min-height: 80px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        #animalito {
+            width: 140px;
+            transition: transform .3s;
+            margin: 6px 0;
+            display:inline-block;
+        }
+        #animalEmoji {
+            font-size: 60px;
+            display: none;
+            margin: 6px 0;
+        }
+        #mensaje {
+            font-size: 18px;
+            margin: 4px;
+            min-height: 24px;
+        }
+        #puntaje {
+            font-size: 18px;
+            margin-top: 4px;
+            color:var(--ok);
+        }
+        .celebracion {
+            font-size: 24px;
+            color: var(--comida-scroll);
+            animation: saltar .6s infinite alternate;
+        }
+        @keyframes saltar {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+        .opciones {
+            margin-top: 10px;
+            display:flex;
+            justify-content:center;
+            flex-wrap:wrap;
+            gap: 8px;
+        }
+        .opcion {
+            font-size: 24px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            background: #fff1f6;
+            border: 2px solid #ffcfde;
+            cursor: pointer;
+            min-width: 60px;
+            font-weight:700;
+        }
+        .opcion:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+        #volverMenuBtn {
+            background: #ffe082;
+            margin-top: 8px;
+        }
+        
+        /* --- ESTILOS MEJORADOS PARA EL TUTORIAL --- */
+        #tutorial {
+            padding: 15px;
+            margin: 10px auto;
+            max-width: 500px;
+            border: 3px solid var(--primario);
+            border-radius: 15px;
+            background-color: #fff8fb;
+            display: none;
+        }
+        #tutorial h3 {
+            color: var(--texto);
+            font-size: 22px;
+            margin-top: 4px;
+        }
+        .tutorial-paso {
+            font-size: 18px;
+            margin: 10px 0;
+            text-align: left;
+            /* Usamos Flexbox para alinear el icono y el texto */
+            display: flex;
+            align-items: flex-start; /* Alinea el inicio del texto con el icono */
+            gap: 10px; /* Espacio entre icono y texto */
+        }
+        .tutorial-paso strong {
+            color: var(--primario);
+        }
+        .tutorial-icono {
+            font-size: 40px;
+            line-height: 1; /* Asegura que el emoji no tenga un espacio extra arriba/abajo */
+            flex-shrink: 0; /* Evita que el icono se encoja */
+            width: 40px; /* Fija un ancho para la columna del icono */
+            text-align: center;
+        }
+        .tutorial-texto {
+            /* El texto toma el espacio restante */
+            flex-grow: 1; 
+            padding-top: 5px; /* Pequeño ajuste visual para centrar con iconos */
+        }
+        /* --- FIN ESTILOS MEJORADOS --- */
+
+        /* ESTILOS PARA EL JUEGO DE SCROLL */
+        #scrollJuego {
+            position: relative;
+            width: 90%;
+            max-width: 400px;
+            height: 200px;
+            margin: 10px auto;
+            border: 3px dashed var(--primario);
+            background-color: #ffffff99;
+            border-radius: 12px;
+            overflow: hidden;
+            touch-action: none; 
+        }
+        #animalScroll {
+            position: absolute;
+            left: 50%;
+            bottom: 10px;
+            transform: translateX(-50%);
+            font-size: 50px;
+            transition: left 0.1s ease;
+        }
+        .scrollComida {
+            position: absolute;
+            top: -30px; 
+            font-size: 30px;
+        }
+        #scrollInstruccion {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--comida-scroll);
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            pointer-events: none;
+            width: 90%;
+            z-index: 10;
+        }
+        /* Ajustes responsivos */
+        @media (max-width:480px){
+            body { padding: 5px; }
+            h1 { font-size: 20px; }
+            #letra { font-size: 50px; min-height: 60px; margin: 4px 0; }
+            #animalito { width: 100px; margin: 4px 0; }
+            .opcion { font-size: 20px; padding: 6px 12px; min-width: 50px; }
+            #menu button, #juego button, #scrollJuegoContenedor button, #tutorial button { font-size: 16px; padding: 6px 12px; margin: 4px; }
+            #instruccion, #mensaje, #puntaje { font-size: 16px; margin: 4px; }
+            #scrollJuego { height: 160px; max-width: 300px; }
+            #animalScroll { font-size: 40px; }
+            .tutorial-icono { font-size: 30px; width: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🌸 Juego de Animalitos - 3 Niveles 🌸</h1>
+
+    <div id="menu">
+        <h2>Elige tu animalito favorito 🐾</h2>
+        <button onclick="seleccionarAnimal('gato')">🐱 Gatito</button>
+        <button onclick="seleccionarAnimal('perro')">🐶 Perrito</button>
+        <button onclick="seleccionarAnimal('conejo')">🐰 Conejito</button>
+        <button onclick="seleccionarAnimal('pajaro')">🦜 Pajarito</button>
+    </div>
+    
+    <div id="tutorial" style="display:none;">
+        <h2 id="tutorialTitulo"></h2>
+        <p id="tutorialMensaje" style="font-size: 18px; margin: 10px 0;"></p>
+        
+        <div id="tutorialContenido">
+            </div>
+
+        <button onclick="comenzarNivel()">¡Entendido, Empezar Juego!</button>
+        <button onclick="volverMenu()" style="background: #ffe082;">🔙 Volver al menú</button>
+    </div>
+
+    <div id="juego" style="display:none;">
+        <h2 id="tituloAnimal"></h2>
+        <p id="instruccion">Nivel en pausa.</p>
+
+        <div id="modos" style="margin-bottom: 8px;">
+            <button id="btnNivel1" onclick="mostrarTutorial('click')">Nivel 1: Clic (5 Ejercicios)</button>
+            <button id="btnNivel2" onclick="mostrarTutorial('teclado')" style="display:none;">Nivel 2: Teclado (5 Ejercicios)</button>
+        </div>
+
+        <div id="letra">?</div>
+        <img id="animalito" src="" alt="Animalito" onerror="this.style.display='none'; document.getElementById('animalEmoji').style.display='block';" />
+        <div id="animalEmoji" aria-hidden="true"></div>
+        <div id="mensaje" aria-live="polite"></div>
+        <div id="puntaje"></div>
+        <div class="opciones" id="opciones"></div>
+
+        <button id="volverMenuBtn" onclick="volverMenu()">🔙 Volver al menú</button>
+    </div>
+
+    <div id="scrollJuegoContenedor" style="display:none;">
+        <h2>🌟 ¡NIVEL 3: Destreza del Ratón (Scroll)! 🌟</h2>
+        <p id="scrollInstruccionPrincipal"></p>
+        <div id="scrollJuego">
+            <div id="animalScroll"></div>
+            <div id="scrollInstruccion"></div>
+        </div>
+        <button onclick="volverMenu()">🔙 Volver al menú</button>
+    </div>
+
+    <audio id="sonidoCorrecto" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+    <audio id="sonidoError" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+    <audio id="sonidoAplauso" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
+
+    <script>
+        const letras = ["A", "B", "C", "D", "E", "G", "P", "S", "T", "L"];
+        const objetivo = 5;
+        let puntaje = 0;
+        let letraActual = "";
+        let animalSeleccionado = null;
+        let modoJuego = null; 
+        let juegoActivo = false;
+        
+        const OK_COLOR = "#2e7d32";
+        const ERROR_COLOR = "#c62828";
+        const SCROLL_COLOR = "#ff7043";
+
+        const animales = {
+            gato: { titulo: "🐱 ¡Ayuda al gatito a recoger huellitas! 🐾", imagen: "./img/gatito.png", emoji: "😺", item: "Huellitas", mensaje: "¡Correcto! El gatito consiguió una huellita 🐾", comidaScroll: "🐟" },
+            perro: { titulo: "🐶 ¡Ayuda al perrito a recoger huesitos! 🦴", imagen: "./img/perrito.png", emoji: "🐕", item: "Huesitos", mensaje: "¡Correcto! El perrito consiguió un huesito 🦴", comidaScroll: "🍗" },
+            conejo: { titulo: "🐰 ¡Ayuda al conejito a recoger zanahorias! 🥕", imagen: "./img/conejito.png", emoji: "🐇", item: "Zanahorias", mensaje: "¡Correcto! El conejito consiguió una zanahoria 🥕", comidaScroll: "🍎" },
+            pajaro: { titulo: "🦜 ¡Ayuda al pajarito a recoger semillas! 🌱", imagen: "./img/pajarito.png", emoji: "🐦", item: "Semillas", mensaje: "¡Correcto! El pajarito consiguió una semilla 🌱", comidaScroll: "🐛" }
+        };
+
+        // --- FUNCIONES DEL TUTORIAL ---
+        
+        // Se ha ajustado el HTML interno de los tutoriales para usar <div> con clase tutorial-texto
+        // y así aprovechar las nuevas reglas de Flexbox en CSS.
+        const tutoriales = {
+            click: {
+                titulo: "NIVEL 1: PRÁCTICA DE CLIC (RATÓN)",
+                mensaje: "En este nivel usaremos el botón izquierdo del ratón para seleccionar la respuesta correcta.",
+                contenido: `
+                    <div class="tutorial-paso">
+                        <div class="tutorial-icono">🖱</div>
+                        <div class="tutorial-texto">Su ratón tiene botones. Para seleccionar, debe presionar el botón de la <strong>izquierda</strong>.</div>
+                    </div>
+                    <div class="tutorial-paso">
+                        <div class="tutorial-icono">👆</div>
+                        <div class="tutorial-texto">Mueva el ratón hasta que la flecha quede sobre la letra, y luego haga <strong>UN SOLO CLIC</strong>.</div>
+                    </div>
+                `
+            },
+            teclado: {
+                titulo: "NIVEL 2: PRÁCTICA DE ESCRITURA (TECLADO)",
+                mensaje: "En este nivel usaremos el teclado para escribir la letra que se pide. ¡Concentración!",
+                contenido: `
+                    <div class="tutorial-paso">
+                        <div class="tutorial-icono">⌨</div>
+                        <div class="tutorial-texto">Debe presionar la tecla de la letra que aparece en pantalla (ej: A, B, C...).</div>
+                    </div>
+                    <div class="tutorial-paso">
+                        <div class="tutorial-icono">⇧</div>
+                        <div class="tutorial-texto">Para escribir una <strong>MAYÚSCULA</strong> (como 'A'), debe mantener presionada la tecla <strong>SHIFT</strong> (o Bloq Mayús) mientras presiona la letra.</div>
+                    </div>
+                `
+            },
+            scroll: {
+                titulo: "NIVEL 3: PRÁCTICA DE RUEDA (SCROLL)",
+                mensaje: "Este es el desafío final: use la rueda del ratón para mover al animal y atrapar su comida.",
+                contenido: `
+                    <div class="tutorial-paso">
+                        <div class="tutorial-icono">🔄</div>
+                        <div class="tutorial-texto">Busque la <strong>rueda</strong> que está en el centro de su ratón.</div>
+                    </div>
+                    <div class="tutorial-paso">
+                        <div class="tutorial-icono">👉</div>
+                        <div class="tutorial-texto">Deslice la rueda <strong>hacia arriba o hacia abajo</strong> rápidamente para mover a su animalito de un lado a otro.</div>
+                    </div>
+                `
+            }
+        };
+
+        let nivelAIniciar = null; 
+
+        function mostrarTutorial(modo){
+            if (modo === 'scroll') {
+                document.getElementById("juego").style.display = 'none';
+                document.getElementById("scrollJuegoContenedor").style.display = 'none';
+            } else {
+                document.getElementById("juego").style.display = 'none';
+            }
+            
+            const data = tutoriales[modo];
+            nivelAIniciar = modo; 
+
+            document.getElementById("tutorialTitulo").textContent = data.titulo;
+            document.getElementById("tutorialMensaje").textContent = data.mensaje;
+            document.getElementById("tutorialContenido").innerHTML = data.contenido;
+            document.getElementById("tutorial").style.display = 'block';
+        }
+
+        function comenzarNivel() {
+            document.getElementById("tutorial").style.display = 'none';
+            
+            if (nivelAIniciar === 'scroll') {
+                iniciarJuegoScroll();
+            } else {
+                document.getElementById("juego").style.display = 'block';
+                iniciarJuego(nivelAIniciar);
+            }
+        }
+        
+        // --- FIN FUNCIONES DEL TUTORIAL ---
+
+        function seleccionarAnimal(tipo){
+            animalSeleccionado = animales[tipo];
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("juego").style.display = "block";
+            document.getElementById("tituloAnimal").textContent = animalSeleccionado.titulo;
+            document.getElementById("animalito").src = animalSeleccionado.imagen;
+            document.getElementById("animalEmoji").textContent = animalSeleccionado.emoji;
+            document.getElementById("scrollJuegoContenedor").style.display = "none";
+            
+            document.getElementById("modos").style.display = 'block';
+            document.getElementById("btnNivel1").style.display = 'inline-block';
+            document.getElementById("btnNivel2").style.display = 'none';
+            document.getElementById("instruccion").textContent = "¡Bienvenido! Elija Nivel 1 para comenzar.";
+            
+            resetJuegoUI();
+        }
+
+        function volverMenu(){
+            juegoActivo = false;
+            scrollActivo = false;
+            clearInterval(colisionIntervalo);
+            clearInterval(scrollIntervalo);
+            clearInterval(comidaIntervalo);
+            clearInterval(comidaCaidaIntervalo); 
+            
+            document.getElementById("scrollJuego").removeEventListener('wheel', moverAnimal);
+            document.getElementById("scrollJuego").removeEventListener('wheel', empezarScroll);
+            
+            document.getElementById("juego").style.display = "none";
+            document.getElementById("scrollJuegoContenedor").style.display = "none";
+            document.getElementById("tutorial").style.display = "none";
+            document.getElementById("menu").style.display = "block";
+            
+            // Ocultar botón de reinicio si existe
+            const btn = document.getElementById('reiniciarTodoBtn');
+            if (btn) btn.style.display = 'none';
+        }
+
+        function resetJuegoUI(){
+            document.getElementById("mensaje").textContent = "";
+            document.getElementById("puntaje").textContent = "";
+            document.getElementById("letra").textContent = "?";
+            document.getElementById("letra").classList.remove("celebracion");
+            document.getElementById("opciones").innerHTML = "";
+            document.getElementById("opciones").style.display = 'none';
+        }
+
+        function iniciarJuego(modo){
+            if(!animalSeleccionado){ alert("Primero elige un animalito en el menú."); return; }
+            modoJuego = modo;
+            puntaje = 0;
+            juegoActivo = true;
+            document.getElementById("puntaje").textContent = animalSeleccionado.item + ": 0 / " + objetivo;
+            document.getElementById("animalito").style.transform = "translateY(0)";
+            document.getElementById("letra").classList.remove("celebracion");
+            document.getElementById("mensaje").textContent = "";
+            
+            document.getElementById("modos").style.display = 'none';
+            document.getElementById("opciones").style.display = (modo === 'click') ? 'flex' : 'none';
+
+            nuevaLetra();
+        }
+
+        function nuevaLetra(){
+            const base = letras[Math.floor(Math.random()*letras.length)];
+            const modoMayuscula = Math.random() < 0.5;
+            letraActual = modoMayuscula ? base.toUpperCase() : base.toLowerCase();
+            document.getElementById("letra").textContent = letraActual;
+
+            if (modoJuego === 'click') {
+                document.getElementById("instruccion").textContent = NIVEL 1: Mueva el ratón y haga CLIC en la letra ${modoMayuscula ? "MAYÚSCULA" : "minúscula"} que se muestra.;
+                crearOpcionesBoton();
+            } else { 
+                document.getElementById("instruccion").textContent = NIVEL 2: Use el TECLADO y escriba la letra ${modoMayuscula ? "MAYÚSCULA" : "minúscula"} que se muestra.;
+            }
+        }
+        
+        function crearOpcionesBoton(){
+            const opcionesDiv = document.getElementById("opciones");
+            opcionesDiv.innerHTML = "";
+            const opciones = [letraActual];
+
+            while(opciones.length < 3){
+                const baseRandom = letras[Math.floor(Math.random()*letras.length)];
+                const letraRandom = (Math.random() < 0.5) ? baseRandom.toUpperCase() : baseRandom.toLowerCase();
+                if(!opciones.includes(letraRandom)) opciones.push(letraRandom);
+            }
+
+            opciones.sort(() => Math.random() - 0.5);
+            opciones.forEach(l => {
+                const btn = document.createElement("button");
+                btn.className = "opcion";
+                btn.textContent = l;
+                btn.onclick = () => verificarRespuesta(l);
+                opcionesDiv.appendChild(btn);
+            });
+        }
+        function verificarRespuesta(letra){
+            if(!juegoActivo || letraActual === "?") return;
+
+            if(letra === letraActual) ganarItem();
+            else mostrarError();
+        }
+        document.addEventListener("keyup", function(e){
+            if (modoJuego !== 'teclado' || !juegoActivo || e.key.length !== 1) return;
+            verificarRespuesta(e.key);
+        });
+        function mostrarError(){
+            document.getElementById("mensaje").textContent = "¡Ups! Esa no era la letra correcta. ¡Intenta de nuevo!";
+            document.getElementById("mensaje").style.color = ERROR_COLOR;
+            document.getElementById("sonidoError").play().catch(()=>{});
+        }
+        
+        function ganarItem(){
+            puntaje++;
+            document.getElementById("mensaje").textContent = animalSeleccionado.mensaje;
+            document.getElementById("mensaje").style.color = OK_COLOR;
+            document.getElementById("puntaje").textContent = animalSeleccionado.item + ": " + puntaje + " / " + objetivo;
+
+            const img = document.getElementById("animalito");
+            img.style.transform = "translateY(-40px)";
+            document.getElementById("sonidoCorrecto").play().catch(()=>{});
+
+            setTimeout(()=> { img.style.transform = "translateY(0)"; }, 300);
+
+            if(puntaje >= objetivo){
+                juegoActivo = false;
+                document.getElementById("letra").textContent = "¡Nivel Completado! 🎉";
+                document.getElementById("letra").classList.add("celebracion");
+                document.getElementById("opciones").innerHTML = "";
+                document.getElementById("opciones").style.display = 'none';
+                document.getElementById("sonidoAplauso").play().catch(()=>{});
+                
+                if (modoJuego === 'click') {
+                    document.getElementById("instruccion").textContent = "¡Felicidades! Nivel 1 Superado.";
+                    document.getElementById("modos").style.display = 'block';
+                    document.getElementById("btnNivel1").style.display = 'none';
+                    document.getElementById("btnNivel2").style.display = 'inline-block';
+
+                } else if (modoJuego === 'teclado') {
+                    document.getElementById("instruccion").textContent = ¡Excelente! Nivel 2 Superado. Pasando al Nivel 3 (Scroll)...;
+                    document.getElementById("modos").style.display = 'none';
+
+                    setTimeout(() => {
+                        mostrarTutorial('scroll');
+                    }, 2000);
+                }
+
+            } else {
+                nuevaLetra();
+            }
+        }
+        
+        // ----------------------------------------------
+        // JUEGO DE SCROLL (NIVEL 3)
+        // ----------------------------------------------
+        const SCROLL_DURATION = 15;
+        let scrollPuntaje = 0;
+        let scrollTiempoRestante = 0;
+        let scrollIntervalo = null;
+        let comidaIntervalo = null;
+        let colisionIntervalo = null;
+        let comidaCaidaIntervalo = null;
+        const CAIDA_SPEED = 2;
+
+        function iniciarJuegoScroll() {
+            if (!animalSeleccionado) { volverMenu(); return; }
+
+            document.getElementById("juego").style.display = "none";
+            document.getElementById("scrollJuegoContenedor").style.display = "block";
+            scrollActivo = true;
+            scrollPuntaje = 0;
+            document.getElementById("animalScroll").textContent = animalSeleccionado.emoji;
+            document.getElementById("animalScroll").style.left = '50%';
+            
+            document.getElementById('scrollInstruccionPrincipal').innerHTML = NIVEL 3: Usa la **rueda** del ratón para mover el animal y atrapar **${animalSeleccionado.item}**s. ¡15 segundos!;
+
+            const juegoDiv = document.getElementById("scrollJuego");
+            juegoDiv.querySelectorAll('.scrollComida').forEach(e => e.remove());
+            clearInterval(colisionIntervalo);
+            clearInterval(scrollIntervalo);
+            clearInterval(comidaIntervalo);
+            clearInterval(comidaCaidaIntervalo);
+            
+            document.getElementById("scrollJuego").removeEventListener('wheel', moverAnimal);
+            document.getElementById("scrollJuego").addEventListener('wheel', moverAnimal);
+            document.getElementById("scrollJuego").removeEventListener('wheel', empezarScroll);
+            document.getElementById("scrollJuego").addEventListener('wheel', empezarScroll, { once: true });
+            
+            document.getElementById("scrollInstruccion").style.display = 'block';
+            document.getElementById("scrollInstruccion").textContent = Mueva la rueda del mouse para empezar.;
+            document.getElementById("scrollInstruccion").style.color = SCROLL_COLOR;
+        }
+
+        function empezarScroll(e) {
+            e.preventDefault();
+            document.getElementById("scrollInstruccion").style.display = 'block';
+            scrollTiempoRestante = SCROLL_DURATION;
+            scrollIntervalo = setInterval(actualizarTiempo, 1000);
+            comidaIntervalo = setInterval(generarComida, 1500);
+            colisionIntervalo = setInterval(verificarColisiones, 50); 
+            comidaCaidaIntervalo = setInterval(animarCaida, 16); 
+
+            setTimeout(terminarJuegoScroll, SCROLL_DURATION * 1000);
+
+            actualizarInstruccion();
+        }
+
+        function actualizarTiempo() {
+            scrollTiempoRestante--;
+            actualizarInstruccion();
+            if (scrollTiempoRestante <= 0) {
+                terminarJuegoScroll();
+            }
+        }
+        
+        function actualizarInstruccion() {
+             document.getElementById("scrollInstruccion").textContent = Tiempo: ${scrollTiempoRestante}s | ${animalSeleccionado.item}: ${scrollPuntaje};
+             document.getElementById("scrollInstruccion").style.color = SCROLL_COLOR;
+        }
+
+        function moverAnimal(e) {
+            if (!scrollActivo || scrollTiempoRestante <= 0) return;
+            e.preventDefault();
+
+            const animal = document.getElementById("animalScroll");
+            const juegoDiv = document.getElementById("scrollJuego");
+            const juegoWidth = juegoDiv.clientWidth;
+            
+            const currentLeftPx = animal.offsetLeft;
+            const speed = 15; 
+            
+            let newLeftPx = currentLeftPx - (e.deltaY > 0 ? speed : -speed); 
+
+            const animalWidth = animal.clientWidth;
+            const minLeft = 0;
+            const maxLeft = juegoWidth - animalWidth;
+            
+            newLeftPx = Math.max(minLeft, Math.min(maxLeft, newLeftPx));
+            
+            animal.style.left = newLeftPx + 'px';
+        }
+
+        function generarComida() {
+            if (!scrollActivo || scrollTiempoRestante <= 0) return;
+
+            const juegoDiv = document.getElementById("scrollJuego");
+            const comida = document.createElement("div");
+            comida.className = "scrollComida";
+            comida.textContent = animalSeleccionado.comidaScroll;
+            
+            comida.style.left = Math.random() * (juegoDiv.clientWidth - 30) + 'px'; 
+            comida.style.top = '-30px'; 
+            comida.dataset.y = -30; 
+            
+            juegoDiv.appendChild(comida);
+        }
+
+        function animarCaida() {
+            if (!scrollActivo || scrollTiempoRestante <= 0) return;
+
+            const juegoDiv = document.getElementById("scrollJuego");
+            const juegoHeight = juegoDiv.clientHeight;
+            const comidas = juegoDiv.querySelectorAll('.scrollComida');
+
+            comidas.forEach(comida => {
+                let y = parseFloat(comida.dataset.y) + CAIDA_SPEED;
+                comida.dataset.y = y;
+                comida.style.top = y + 'px';
+
+                if (y > juegoHeight) {
+                    comida.remove();
+                }
+            });
+        }
+
+        function verificarColisiones() {
+            if (!scrollActivo || scrollTiempoRestante <= 0) return;
+
+            const animal = document.getElementById("animalScroll");
+            const juegoDiv = document.getElementById("scrollJuego");
+            
+            const animalLeft = animal.offsetLeft;
+            const animalRight = animalLeft + animal.clientWidth;
+            const animalTop = animal.offsetTop; 
+            const animalBottom = animalTop + animal.clientHeight;
+
+            juegoDiv.querySelectorAll('.scrollComida').forEach(comida => {
+                const comidaLeft = comida.offsetLeft;
+                const comidaTop = parseFloat(comida.dataset.y);
+
+                const isVerticallyAligned = comidaTop > animalTop && comidaTop < animalBottom;
+                const isHorizontallyAligned = comidaLeft < animalRight && (comidaLeft + comida.clientWidth) > animalLeft;
+
+                if (isVerticallyAligned && isHorizontallyAligned) {
+                    comida.remove();
+                    scrollPuntaje++;
+                    actualizarInstruccion();
+                    document.getElementById("sonidoCorrecto").play().catch(()=>{});
+                }
+            });
+        }
+
+        function terminarJuegoScroll() {
+            scrollActivo = false;
+            clearInterval(colisionIntervalo);
+            clearInterval(scrollIntervalo);
+            clearInterval(comidaIntervalo);
+            clearInterval(comidaCaidaIntervalo);
+            
+            document.getElementById("scrollJuego").removeEventListener('wheel', moverAnimal);
+            
+            const mensajeFinal = 🎉 ¡FIN DEL JUEGO! 🎉<br>Conseguiste **${scrollPuntaje}** ${animalSeleccionado.item.toLowerCase()}s en el Nivel 3.;
+            document.getElementById("scrollInstruccion").innerHTML = mensajeFinal;
+            document.getElementById("scrollInstruccion").style.color = OK_COLOR;
+            document.getElementById("sonidoAplauso").play().catch(()=>{});
+            
+            // Muestra un botón de Jugar de Nuevo al finalizar todo
+            const contenedor = document.getElementById('scrollJuegoContenedor');
+            let btn = document.getElementById('reiniciarTodoBtn');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'reiniciarTodoBtn';
+                btn.textContent = '🎮 Jugar la Secuencia Completa de Nuevo';
+                btn.onclick = volverMenu;
+                btn.style.cssText = 'background: #64b5f6; margin-top: 10px; font-size: 20px; padding: 10px 20px;';
+                contenedor.appendChild(btn);
+            }
+            btn.style.display = 'inline-block';
+        }
+
+    </script>
+</body>
+</html>
